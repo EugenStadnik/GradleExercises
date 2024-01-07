@@ -49,7 +49,7 @@ hello {
 task("hello2", {
     println "conf phase. Task hello2"
     description = "Hello2 task"
-    group = "dev2"
+    group = "hello"
 })
 
 // However more more more more more comfortable way is
@@ -57,7 +57,7 @@ task("hello2", {
 task("hello3") {
     println "conf phase. Task hello3"
     description = "Hello3 task"
-    group = "dev3"
+    group = "hello"
 }
 
 // However more more more more more more comfortable way is
@@ -65,7 +65,7 @@ task("hello3") {
 task "hello4" {
     println "conf phase. Task hello4"
     description = "Hello4 task"
-    group = "dev4"
+    group = "hello"
 }
 
 // However more more more more more more more comfortable way is
@@ -73,12 +73,12 @@ task "hello4" {
 task hello5 {
     println "conf phase. Task hello5"
     description = "Hello5 task"
-    group = "dev5"
+    group = "hello"
 }
 
 // another one syntax sugar way is to use java.util.Map with Closure
 
-def map = [description: "Hello6 task", group: "dev6"]
+def map = [description: "Hello6 task", group: "hello"]
 task (map, "hello6") {
     println "conf phase. Task hello6"
     println "description: \"${description}\", group: \"${group}\", actions: \"${actions}\""
@@ -86,14 +86,14 @@ task (map, "hello6") {
 
 // At last the best of the best way to init task is
 
-task hello7(description: "Hello7 task", group: "dev7", type: DefaultTask.class) {
+task hello7(description: "Hello7 task", group: "hello", type: DefaultTask.class) {
 // When you'll not specify the type - it's ok. yor currently created task will be extended from DefaultTask.class by default
 // However you can extend your task from any of org.gradle.api.Task subclasses
     println "conf phase. Task hello7"
     println "description: \"${description}\", group: \"${group}\", actions: \"${actions}\""
 }
 
-task hello8(description: "Hello8 task", group: "dev8", type: DefaultTask) {
+task hello8(description: "Hello8 task", group: "hello", type: DefaultTask) {
 // When you'll not specify the type - it's ok. yor currently created task will be extended from DefaultTask.class by default
 // However you can extend your task from any of org.gradle.api.Task subclasses
     println "conf phase. Task hello8" // Will be triggered on config phase only
@@ -281,6 +281,27 @@ apply plugin: CustomPlugin
 // ADVANTAGE - as ClassPlugin is a class it can be implemented and covered by tests more flexible
 // DISADVANTAGE - ClassPlugin is bulky and need to be switched outside the build.gradle script into /buildSrc directory
 
+// ADDITIONAL SOURCES
+// Whe additional data classes are generated and placed to a specific directory before build developer should to append that additional sources to a project
+sourceSets {
+    main {
+        java {
+            // srcDir = ['src/java'] // will REDEFINE resource URI // DO NOT DO LIKE THAT
+            srcDir("src/commonDataClasses/java") // will append ///MyProject/src/dataClasses/java to build
+            srcDirs("src/inputDataClasses/java", "src/outputDataClasses/java")
+            // will append ///MyProject/src/inputDataClasses/java and ///MyProject/src/outputDataClasses/java to build
+        }
+        resources {
+            // srcDir = ['src/resources'] // will REDEFINE resource URI // DO NOT DO LIKE THAT
+            srcDir("src/commonDataClasses/resources") // will append ///MyProject/src/dataClasses/resources to build
+            srcDirs("src/inputDataClasses/resources", "src/outputDataClasses/resources")
+            // will append ///MyProject/src/inputDataClasses/resources and ///MyProject/src/outputDataClasses/resources to build
+        }
+    }
+    /*test {
+
+    }*/
+}
 
 println "\"hello\" task description: \"${hello.description}\""
 println "\"hello\" task group: \"${hello.group}\""

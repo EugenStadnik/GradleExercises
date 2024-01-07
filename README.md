@@ -99,3 +99,10 @@ build<br />
 
 It means ***processResources*** task won't be triggered without ***compileJava*** successful execution and so on down to the TaskGraph.
 
+The ***java*** plugin tasks dependencies:
+---
+https://docs.gradle.org/current/userguide/img/javaPluginTasks.png
+
+The ***java*** plugin docs page:
+---
+https://docs.gradle.org/current/userguide/java_plugin.html#header
