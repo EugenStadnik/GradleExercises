@@ -70,3 +70,32 @@ The ***1*** and ***2*** are init phases. The ***3*** is a config phase. The ***4
 
 **org.gradle.api.Action* object*
 ---
+Just register and implement some actions in a task like:
+
+*doFirst { println "To do smthng" }*
+
+OR
+
+*doLast { println "To do smthng else" }*
+
+To show all tasks available:
+---
+Type ***$ gradle tasks*** in CMD of root project folder.
+
+Also let's imagine the ***gradle.taskGraph.whenReady*** callback is implemented and shows all tasks order and dependency chain and user triggers ***$ gradle build*** command on an empty project. The following tasks chain will be retrieved:
+
+---- Graph:<br />
+compileJava<br />
+processResources<br />
+classes<br />
+jar<br />
+assemble<br />
+compileTestJava<br />
+processTestResources<br />
+testClasses<br />
+test<br />
+check<br />
+build<br />
+
+It means ***processResources*** task won't be triggered without ***compileJava*** successful execution and so on down to the TaskGraph.
+

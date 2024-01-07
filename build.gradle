@@ -1,3 +1,8 @@
+import java.time.LocalDate
+
+// STANDARD PLUGINS
+// Also there are a lot of standard plugins like "java" available from the box. To apply it:
+// apply plugin: "java" // Deprecated way to apply standard plugins
 plugins {
     id 'java'
 }
@@ -24,6 +29,7 @@ println "gradle root project hash: ${gradle.rootProject.hashCode()}"
 println "root project hash: ${rootProject.hashCode()}"
 println "project hash: ${project.hashCode()}"
 
+// TASKS AND THEIR ATTRIBUTES DETERMINATION
 // Task task = new DefaultTask() {};
 task("hello")
 tasks.findByName("hello").description = "Hello task"
@@ -113,6 +119,167 @@ hello8.doFirst { // one of the variances to determine the org.gradle.api.Action
     println "execution phase, Action 5"
 }
 
+// TASK DEPENDENCY DETERMINATION
+task first {
+    onlyIf {return true} // The task will be triggered only if Closure returns true depending on condition determined in the Closure
+    doLast {
+        println "Task first"
+    }
+}
+task second {
+    onlyIf {return true} // The task will be triggered only if Closure returns true depending on condition determined in the Closure
+    doLast {
+        println "Task second"
+    }
+}
+task third {
+    onlyIf {return true} // The task will be triggered only if Closure returns true depending on condition determined in the Closure
+    doLast {
+        println "Task third"
+    }
+}
+// To determine task 4 dependent on task 2
+task fourth/*(dependsOn: second) or even (dependsOn: [first, second]) also applicable*/ {
+    onlyIf {return true} // The task will be triggered only if Closure returns true depending on condition determined in the Closure
+    //dependsOn first
+    //dependsOn(second, third)
+    doLast {
+        println "Task fourth"
+    }
+}
+fourth.dependsOn second
+//fourth.dependsOn(second, third) // As a variant
+// To determine task 1 dependent on task 2
+second.finalizedBy third // The reverse dependency determination comparing to *dependsOn*
+// can be used as task parameter like *task second(finalizedBy first)*
+// or even determined in a closure like *{ //finalizedBy(second, third) }*
+
+// DETERMINE ORDER WITHOUT DEPENDENCY
+// Let's say I need
+// 2 <-\
+// 1 <--- 4
+// 3 <-/
+// Commonly the 1,2,3 tasks order is not guaranteed. However usually 1,2,3 tasks executed in order of their determination
+// BUT I NEED 4-th task depends on all 1, 2, 3 tasks and 1 must run after 2 without a dependency
+task one {
+    onlyIf {return true} // The task will be triggered only if Closure returns true depending on condition determined in the Closure
+    doLast {
+        println "Task one"
+    }
+}
+task two {
+    onlyIf {return true} // The task will be triggered only if Closure returns true depending on condition determined in the Closure
+    doLast {
+        println "Task two"
+    }
+}
+task three {
+    onlyIf {return true} // The task will be triggered only if Closure returns true depending on condition determined in the Closure
+    doLast {
+        println "Task three"
+    }
+}
+task four(dependsOn: one, group: "MyGroup") {
+    onlyIf {return true} // The task will be triggered only if Closure returns true depending on condition determined in the Closure
+    dependsOn two
+    doLast {
+        println "Task four"
+    }
+}
+four.dependsOn three
+one.mustRunAfter two
+//one.shouldRunAfter two // Also a valid syntax
+
+// TASK GRAPH CALL-BACK
+// To investigate task graph use *Task Graph CallBacks*
+gradle.taskGraph.whenReady { TaskExecutionGraph graph ->
+    println "---- Graph:"
+    graph.allTasks.each {Task task ->
+        println "${task.name}"
+    }
+    println "!!! CONCLUSION - the graph is initialized depending on task invoked"
+}
+//gradle.taskGraph.allTasks.each {} // Will throw exception as build.gradle id a config phase
+// so the task graph will be completely initialized only in the finish of config phase
+gradle.taskGraph.beforeTask { Task task -> // Will be triggered before each task if other condition is not determined
+    if (task.getGroup() == "MyGroup") { // will be triggered only if task is assigned to "MyGroup" group
+        // don't forget to assign the task to a group
+        println "${task} beforeTask callback"
+    }
+
+}
+gradle.taskGraph.afterTask { Task task -> // Will be triggered after each task if other condition is not determined
+    if (task.getName() == "two") { // will be triggered only if task is of "two" name
+        println "${task} afterTask callback"
+    }
+}
+// When no other task is triggered during *$ gradle* invocation the *help* task will be triggered by default
+// To override such a behavior append all tasks should be triggered by default at the list of default tasks
+defaultTasks "first", "one"
+
+// PROPERTIES INTERACTION
+// to set properties inside gradle script use *ext*
+ext {
+    javaVersion = "11"
+    currentDate = LocalDate.now()
+}
+// to invoke properties use
+println project.ext.javaVersion // or
+println ext.javaVersion // or
+println project.javaVersion // or
+println javaVersion
+// another way to determine properties using gradle is to create ///MyProject/gradle.properties file
+// but determine only gradle related properties in it.
+// The determination of *spring_version* properties in a ///MyProject/gradle.properties file is a bad practice
+// The recommended gradle properties - https://docs.gradle.org/current/userguide/build_environment.html#header
+println "---- All project properties:"
+println project.properties
+println "---- System \"sys.example\" property:"
+println System.getProperty("sys.example") // Do not forget to specify -Dsys.example=sysValue as CMD argument during *$ gradle* invocation
+println "---- Project \"proj.param\" property:"
+println project.getProperties().get("proj.param") // Do not forget to specify -Pproj.param=projValue as CMD argument during *$ gradle* invocation
+
+// CUSTOM PLUGINS
+// 1. Script Plugin: create ///MyProject/name.gradle file and describe there part of a gradle script
+// then apply the part in the main build.gradle specifying path to the name.gradle file
+apply from: "./name.gradle"
+// 2. plugin class creation
+class CustomPlugin implements Plugin<Project> {
+    @Override
+    void apply(Project target) {
+        classPluginTask(target);
+    }
+
+    void classPluginTask(Project target) {
+        def map = [description: "classPluginTask task", group: "dev", type: DefaultTask]
+        target.task(map, "classPluginTask") {
+            // When you'll not specify the type - it's ok. yor currently created task will be extended from DefaultTask.class by default
+            // However you can extend your task from any of org.gradle.api.Task subclasses
+            println "conf phase. Task classPluginTask" // Will be triggered on config phase only
+            println "description: \"${description}\", group: \"${group}\", actions: \"${actions}\"" // Will be triggered on config phase only
+            doLast { // this is the org.gradle.api.Action will be appended to the end of the "actions" List in order to determination
+                println "execution phase, Action 1" // Will be triggered on exec phase only
+            }
+            doFirst { // this is the org.gradle.api.Action will be appended to the beginning of the "actions" List in order to determination
+                println "execution phase, Action 2" // Will be triggered on exec phase only
+            }
+            doLast { // this is the org.gradle.api.Action will be appended to the end of the "actions" List in order to determination
+                println "execution phase, Action 3" // Will be triggered on exec phase only
+            }
+            doFirst { // this is the org.gradle.api.Action will be appended to the beginning of the "actions" List in order to determination
+                println "execution phase, Action 4" // Will be triggered on exec phase only
+            }
+            println "description: \"${description}\", group: \"${group}\", actions: \"${actions}\"" // Will be triggered on config phase only
+            println "path task: ${path}" // Will be triggered on config phase only
+            //gradle.taskGraph.allTasks
+        }
+    }
+}
+// Then apply class plugin
+apply plugin: CustomPlugin
+// apply plugin: CustomPlugin.class // is also a valid syntax
+// ADVANTAGE - as ClassPlugin is a class it can be implemented and covered by tests more flexible
+// DISADVANTAGE - ClassPlugin is bulky and need to be switched outside the build.gradle script into /buildSrc directory
 
 
 println "\"hello\" task description: \"${hello.description}\""
