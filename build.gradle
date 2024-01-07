@@ -17,3 +17,103 @@ dependencies {
 test {
     useJUnitPlatform()
 }
+
+println "config phase"
+println "gradle hash: ${gradle.hashCode()}"
+println "gradle root project hash: ${gradle.rootProject.hashCode()}"
+println "root project hash: ${rootProject.hashCode()}"
+println "project hash: ${project.hashCode()}"
+
+// Task task = new DefaultTask() {};
+task("hello")
+tasks.findByName("hello").description = "Hello task"
+// However more comfortable way is
+hello.description = "Hello task"
+hello.group = "dev"
+// However more more comfortable way is
+// public Task configure(Closure closure) of AbstractTask class
+hello {
+    println "conf phase. Task hello"
+    description = "Hello task"
+    group = "dev"
+}
+
+// However more more more more comfortable way is
+
+task("hello2", {
+    println "conf phase. Task hello2"
+    description = "Hello2 task"
+    group = "dev2"
+})
+
+// However more more more more more comfortable way is
+
+task("hello3") {
+    println "conf phase. Task hello3"
+    description = "Hello3 task"
+    group = "dev3"
+}
+
+// However more more more more more more comfortable way is
+
+task "hello4" {
+    println "conf phase. Task hello4"
+    description = "Hello4 task"
+    group = "dev4"
+}
+
+// However more more more more more more more comfortable way is
+
+task hello5 {
+    println "conf phase. Task hello5"
+    description = "Hello5 task"
+    group = "dev5"
+}
+
+// another one syntax sugar way is to use java.util.Map with Closure
+
+def map = [description: "Hello6 task", group: "dev6"]
+task (map, "hello6") {
+    println "conf phase. Task hello6"
+    println "description: \"${description}\", group: \"${group}\", actions: \"${actions}\""
+}
+
+// At last the best of the best way to init task is
+
+task hello7(description: "Hello7 task", group: "dev7", type: DefaultTask.class) {
+// When you'll not specify the type - it's ok. yor currently created task will be extended from DefaultTask.class by default
+// However you can extend your task from any of org.gradle.api.Task subclasses
+    println "conf phase. Task hello7"
+    println "description: \"${description}\", group: \"${group}\", actions: \"${actions}\""
+}
+
+task hello8(description: "Hello8 task", group: "dev8", type: DefaultTask) {
+// When you'll not specify the type - it's ok. yor currently created task will be extended from DefaultTask.class by default
+// However you can extend your task from any of org.gradle.api.Task subclasses
+    println "conf phase. Task hello8" // Will be triggered on config phase only
+    println "description: \"${description}\", group: \"${group}\", actions: \"${actions}\"" // Will be triggered on config phase only
+    doLast { // this is the org.gradle.api.Action will be appended to the end of the "actions" List in order to determination
+        println "execution phase, Action 1" // Will be triggered on exec phase only
+    }
+    doFirst { // this is the org.gradle.api.Action will be appended to the beginning of the "actions" List in order to determination
+        println "execution phase, Action 2" // Will be triggered on exec phase only
+    }
+    doLast { // this is the org.gradle.api.Action will be appended to the end of the "actions" List in order to determination
+        println "execution phase, Action 3" // Will be triggered on exec phase only
+    }
+    doFirst { // this is the org.gradle.api.Action will be appended to the beginning of the "actions" List in order to determination
+        println "execution phase, Action 4" // Will be triggered on exec phase only
+    }
+    println "description: \"${description}\", group: \"${group}\", actions: \"${actions}\"" // Will be triggered on config phase only
+    println "path task: ${path}" // Will be triggered on config phase only
+    //gradle.taskGraph.allTasks
+}
+
+hello8.doFirst { // one of the variances to determine the org.gradle.api.Action
+    println "execution phase, Action 5"
+}
+
+
+
+println "\"hello\" task description: \"${hello.description}\""
+println "\"hello\" task group: \"${hello.group}\""

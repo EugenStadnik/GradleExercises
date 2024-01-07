@@ -1,0 +1,8 @@
+def value = "first script"
+def gradleHashCode = "${gradle.hashCode()}" //will retrieve the hashCode value of gradle object
+def hashCode = "${hashCode()}" //will retrieve the hashCode value of current script
+println "it's script: $value, ${gradle.hashCode()}"
+println "it's script: $value, ${this.hashCode()}, ${this.toString()}, ${this.getClass().getSimpleName()}"
+
+//println "root: ${rootProject}" //DO NOT DO LIKE THAT > The root project is not yet available for build.
+// The *org.gradle.api.Project* object will be initialized during third stage with build.gradle script invocation

@@ -1,2 +1,7 @@
 rootProject.name = 'GradleExercises'
 
+println "init phase, settings.gradle file: ${this.toString()}, ${this.getClass().getSimpleName()}"
+println "gradle hash: ${gradle.hashCode()}"
+println "settings dir: ${settings.settingsDir}"
+
+println "root project hash: ${rootProject.hashCode()}"

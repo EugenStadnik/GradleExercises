@@ -1,0 +1,5 @@
+def value = "second script"
+def gradleHashCode = "${gradle.hashCode()}" //will retrieve the hashCode value of gradle object
+def hashCode = "${hashCode()}" //will retrieve the hashCode value of current script
+println "it's script: $value, ${gradle.hashCode()}"
+println "it's script: $value, ${this.hashCode()}, ${this.toString()}, ${this.getClass().getSimpleName()}"
