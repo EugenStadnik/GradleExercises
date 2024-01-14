@@ -1,0 +1,5 @@
+// The 'common' is just a container project to include other projects
+// To observe all available (included) modules in the IDEA UI - investigate "Gradle" bookmark
+// To observe all available (included) modules as a relationship graph - type *$ gradle help projects*
+
+version = '1.0.4'

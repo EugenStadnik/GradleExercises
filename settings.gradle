@@ -5,3 +5,25 @@ println "gradle hash: ${gradle.hashCode()}"
 println "settings dir: ${settings.settingsDir}"
 
 println "root project hash: ${rootProject.hashCode()}"
+
+include 'database' // To include the 'database' module
+// To invoke tasks of 'database' module only type *$ gradle :database:taskName* for ex.: *$ gradle :database:assemble*
+include 'service' // To include the 'service' module
+// To invoke tasks of 'service' module only type *$ gradle :service:taskName* for ex.: *$ gradle :service:build*
+include 'web' // To include the 'web' module
+// To invoke tasks of 'web' module only type *$ gradle :web:taskName* for ex.: *$ gradle :web:war*
+include 'common' // To include the 'common' module
+// The 'common' is just a container project to include other projects
+include 'common:core'
+//findProject(':common:core')?.name = 'core' // mostly it is redundant
+// To invoke tasks of 'common:core' module only type *$ gradle :common:core:taskName* for ex.: *$ gradle :common:core:jar*
+include 'common:util'
+//findProject(':common:util')?.name = 'util' // mostly it is redundant
+// To invoke tasks of 'common:util' module only type *$ gradle :common:util:taskName* for ex.: *$ gradle :common:util:jar*
+// To observe all available (included) modules in the IDEA UI - investigate "Gradle" bookmark
+// To observe all available (included) modules as a relationship graph - type *$ gradle help projects*
+
+gradle.settingsEvaluated {
+    // When second init phase (settings.gradle) is finished
+    // user can invoke all projects and sub-projects including all their init attributes
+}

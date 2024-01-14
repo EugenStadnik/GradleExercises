@@ -1,0 +1,32 @@
+// To invoke tasks of 'web' module only type *$ gradle :web:taskName* for ex.: *$ gradle :web:war*
+// To observe all available (included) modules in the IDEA UI - investigate "Gradle" bookmark
+// To observe all available (included) modules as a relationship graph - type *$ gradle help projects*
+
+// It is strongly recommended to init web modules with Spring-Initializer
+plugins { //              |
+	id 'java' //          |
+	id 'war' // <---------|
+	id 'org.springframework.boot' version '3.2.1'
+	id 'io.spring.dependency-management' version '1.1.4'
+}
+
+group = 'org.dev'
+version = '1.0.3'
+
+java {
+	sourceCompatibility = '17'
+}
+
+repositories {
+	mavenCentral()
+}
+
+dependencies {
+	implementation 'org.springframework.boot:spring-boot-starter-web'
+	providedRuntime 'org.springframework.boot:spring-boot-starter-tomcat'
+	testImplementation 'org.springframework.boot:spring-boot-starter-test'
+}
+
+tasks.named('test') {
+	useJUnitPlatform()
+}

@@ -5,10 +5,20 @@ import java.time.LocalDate
 // apply plugin: "java" // Deprecated way to apply standard plugins
 plugins {
     id 'java'
+    // To build project as *.war application apply the "war" plugin
+    id 'war'
+    // it will replace the "jar" task dependency in the "assemble" task
+    // do not forget to include "jakarta.servlet" dependency, implement simple "Servlet" class and run Tomcat:10
 }
 
-group = 'org.example'
-version = '1.0-SNAPSHOT'
+// To set java version for source and compiled classes
+java {
+    sourceCompatibility = JavaVersion.VERSION_17
+    targetCompatibility = JavaVersion.VERSION_17
+}
+
+group = 'com.dev'
+version = '1.0'
 
 // APPLY REPOSITORIES LIST IN A SPECIFIC ORDER
 // gradle stores all downloaded or found dependencies in ~/.gradle/caches
@@ -74,6 +84,11 @@ configurations { // the org.gradle.api.internal.project.DefaultProject.configura
 
 // TO CONNECT THIRD PARTY LIBRARIES USE FOLLOWING SYNTAX
 dependencies { // the org.gradle.api.internal.project.DefaultProject.dependencies(Closure configureClosure) implementation
+
+    // To demo the "war" plugin advantages include "servlet"
+    compileOnly "jakarta.servlet:jakarta.servlet-api:5.0.0"
+    // do not forget to apply "war" plugin, implement simple "Servlet" class and run Tomcat:10
+
     add("implementation", [group: "org.springframework", name: "spring-webmvc", version: "5.3.9"])
     // the o.g.a.i.a.d.d.DefaultDependencyHandler.add(String configurationName, Object dependencyNotation) implementation
     // the "implementation" is a configuration name (should to be created already) (implemented in a org.gradle.api.plugins.JavaPlugin)
@@ -83,6 +98,7 @@ dependencies { // the org.gradle.api.internal.project.DefaultProject.dependencie
 
     // PLATFORM SUPPORT
     add("testImplementation", platform('org.junit:junit-bom:5.9.1')) // same as previous but a syntax sugar
+    // The platform() is an org.gradle.api.internal.artifacts.dsl.dependencies.PlatformSupport implementation
     // The platform() is just a *.pom file where all dependencies and their conflicts already resolved successfully
     // The platform() as itself doesn't download any *.jar files or any other libraries
     // Investigate ~/.gradle/caches/modules-2/files-2.1/org.junit/junit-bom/5.9.1/ to ensure
@@ -93,6 +109,8 @@ dependencies { // the org.gradle.api.internal.project.DefaultProject.dependencie
     // To download related to platform library or *.jar file
     // specify needed group: and name: omitting the version: value as it is already resolved in platform
     testImplementation 'org.junit.jupiter:junit-jupiter' // same as previous but a syntax sugar
+    // When no supported version found either from manual determination or from the platform *.pom file
+    // the application won't build but fail with gradle errors
 
     // After *$ gradle build* triggered investigate
     // ~/.gradle/caches/modules-2/files-2.1/org.springframework/spring-webmvc/5.3.9/
@@ -492,3 +510,65 @@ sourceSets {
 
 println "\"hello\" task description: \"${hello.description}\""
 println "\"hello\" task group: \"${hello.group}\""
+
+// FAT JAR - less prioritized way
+// where all dependencies will be appended as unzipped or un-jar-ed *.class files to our *.jar application
+task fatJar(type: Jar) {
+    // the *jar{}* is just a org.gradle.api.tasks.bundling.Jar.jar(Closure closure) method implementation as TASK available in a *java* plugin
+    // When *$ gradle assemble* or *$ gradle jar* task is invoked with default or empty *jar{}* task implementation
+    // the jar/META_INF/MANIFEST.MF file will not contains the main class reference and *$ java -jar myApp.jar* invocation
+    // will fail with "no main manifest attribute" error.
+    // To fix it either append "Main-Class: com.dev.HelloWorld" or better to determine
+    manifest {
+        attributes "Main-Class": "com.dev.HelloWorld"
+    }
+    // Regardless *manifest {}* is determined the *$ gradle assemble* or *$ gradle jar*
+    // task invocation still will fail with *java.lang.NoClassDefFoundError*
+    // as no related dependency classes appended to our *.jar
+    // to fix it define
+    from(configurations.runtimeClasspath.files.collect{ File file -> project.zipTree(file)})
+    // Do not forget to unzip *.jar files retrieved by configurations.runtimeClasspath.files
+    // as *.jar files libraries just appended to our project are not useful but *.class files are
+
+    // Regardless all dependency *.class files are appended
+    // each library contains it's own license.txt file such can be duplicated
+    // to fix it define
+    duplicatesStrategy(DuplicatesStrategy.EXCLUDE)
+}
+
+// FLAT JAR - more prioritized way
+// where all dependencies *.jar files will be placed into a separate ./build/lib folder and determine relation in MANIFEST file
+task copyAllDependencies(type: Copy) {
+    from(configurations.runtimeClasspath.files)
+    into("$buildDir/libs/lib")
+}
+jar.dependsOn(copyAllDependencies)
+jar {
+    // the *jar{}* is just a org.gradle.api.tasks.bundling.Jar.jar(Closure closure) method implementation as TASK available in a *java* plugin
+    // When *$ gradle assemble* or *$ gradle jar* task is invoked with default or empty *jar{}* task implementation
+    // the jar/META_INF/MANIFEST.MF file will not contains the main class reference and *$ java -jar myApp.jar* invocation
+    // will fail with "no main manifest attribute" error.
+    // To fix it either append "Main-Class: com.dev.HelloWorld" or better to determine
+    manifest {
+        attributes "Main-Class": "com.dev.HelloWorld",
+        // Regardless *manifest {}* is determined the *$ gradle assemble* or *$ gradle jar*
+        // task invocation still will fail with *java.lang.NoClassDefFoundError*
+        // as no related dependency libraries appended to our *.jar application
+        // to fix it define
+        "Class-Path": configurations.runtimeClasspath.files.collect{File file -> "lib/$file.name"}.join(" ")
+    }
+}
+
+// DEPLOY OUR WAR APPLICATION TO THE TOMCAT
+// install and run Tomcat first
+war {
+    archiveFileName = "gradleExercises.war"
+    // As war is renamed invoke http://127.0.0.1:8080/gradleExercises according to "gradleExercises.war" name
+    // Do not forget about http://127.0.0.1:8080/gradleExercises/users
+}
+task deployTomcat(type: Copy) {
+    from(war.archiveFile.get())
+    into("/home/ystadnik/Downloads/apache-tomcat-10.1.18/webapps/") // MANDATORY sign full path without shorting like ~
+}
+deployTomcat.dependsOn war
+assemble.dependsOn deployTomcat

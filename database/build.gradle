@@ -1,0 +1,22 @@
+// To invoke tasks of 'database' module only type *$ gradle :database:taskName* for ex.: *$ gradle :database:assemble*
+// To observe all available (included) modules in the IDEA UI - investigate "Gradle" bookmark
+// To observe all available (included) modules as a relationship graph - type *$ gradle help projects*
+plugins {
+    id 'java'
+}
+
+group = 'org.dev'
+version = '1.0.1'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    testImplementation platform('org.junit:junit-bom:5.9.1')
+    testImplementation 'org.junit.jupiter:junit-jupiter'
+}
+
+test {
+    useJUnitPlatform()
+}
