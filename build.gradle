@@ -10,13 +10,200 @@ plugins {
 group = 'org.example'
 version = '1.0-SNAPSHOT'
 
-repositories {
-    mavenCentral()
+// APPLY REPOSITORIES LIST IN A SPECIFIC ORDER
+// gradle stores all downloaded or found dependencies in ~/.gradle/caches
+// gradle will search for each dependency determined in a *dependencies {}* area starting from first determined repository
+// and follow each next repository in order of their (repositories) determination.
+// When specific dependency found gradle stops to search the dependency in other following repositories.
+// When no dependency found in any specified repositories the build process will fail with appropriate error message.
+repositories { // the implementation of org.gradle.api.artifacts.dsl.RepositoryHandler.repositories(Closure configureClosure) interface i.e. DefaultRepositoryHandler
+    mavenCentral() // refers to String MAVEN_CENTRAL_URL = "https://repo.maven.apache.org/maven2/" in org.gradle.api.artifacts.ArtifactRepositoryContainer
+    mavenLocal() // invoked as system.getProperty("maven.repo.local") in org.gradle.api.internal.artifacts.mvnsettings.DefaultLocalMavenRepositoryLocator
+    // refers to ~/.m2/repository
+
+    // To specify custom repository
+    maven {
+        name "project nexus"
+        url "https://nexus.epam.com/repository"
+    }
+    // or even
+    maven {
+        name "spring"
+        url "https://repo.spring.io/release"
+    }
+
+    // To specify local HDD dir repository // NOT RECOMMENDED - depends on yor local environment and high risk of failure against global build runner container
+    flatDir {
+        name "local dir"
+        dir("~/RepoDir")
+    }
+    // or even can specify multiple
+    flatDir {
+        name "local dirs"
+        dirs("~/RepoDir1", "~/RepoDir2")
+    }
+
+    // to search for dependencies already cached in ~/.gradle/caches and do not search for dependencies over the internet
+    // just use *--offline* VM option with the *$ gradle* invocation. For ex.: *$ gradle --offline build*
+    // WARNING when no dependency cached in the offline mode the build will fail
+    // Whe IDEA "gradle" UI bookmark is used tap "-//-" - "Toggle Offline Mode" button to use gradle in the offline mode
 }
 
-dependencies {
-    testImplementation platform('org.junit:junit-bom:5.9.1')
-    testImplementation 'org.junit.jupiter:junit-jupiter'
+// TO CREATE CUSTOM CONFIGURATIONS
+configurations { // the org.gradle.api.internal.project.DefaultProject.configurations(Closure configureClosure) implementation
+    // represents a org.gradle.api.internal.artifacts.configurations.DefaultConfigurationContainer
+    Configuration implementationConfig = getByName("implementation")
+    implementationConfig.getDependencies() // the org.gradle.api.artifacts.DependencySet will be retrieved
+    //      and this Set contains "spring-webmvc" appended in *dependencies{}* area
+
+    // The configuration{} section is just a container (DefaultConfigurationContainer)
+    //      so any configuration created will only extend or contain any other default configuration(s)
+    //      so to implement custom configuration
+    myConfig {
+        description = "my configuration"
+    }
+    implementationConfig.extendsFrom(myConfig)
+
+    // TO ENFORCE SPECIFIC TRANSITIVE DEPENDENCY VERSION
+    all {
+        resolutionStrategy {
+            force ("org.springframework:spring-beans:5.3.8")
+        }
+    }
+}
+
+// TO CONNECT THIRD PARTY LIBRARIES USE FOLLOWING SYNTAX
+dependencies { // the org.gradle.api.internal.project.DefaultProject.dependencies(Closure configureClosure) implementation
+    add("implementation", [group: "org.springframework", name: "spring-webmvc", version: "5.3.9"])
+    // the o.g.a.i.a.d.d.DefaultDependencyHandler.add(String configurationName, Object dependencyNotation) implementation
+    // the "implementation" is a configuration name (should to be created already) (implemented in a org.gradle.api.plugins.JavaPlugin)
+    // Most versions consist of major.minor.increment-qualifier
+    // for "spring-webmvc" major=5, minor=3, increment=9, qualifier=SNAPSHOT
+    // usually the SNAPSHOT is a non-production version
+
+    // PLATFORM SUPPORT
+    add("testImplementation", platform('org.junit:junit-bom:5.9.1')) // same as previous but a syntax sugar
+    // The platform() is just a *.pom file where all dependencies and their conflicts already resolved successfully
+    // The platform() as itself doesn't download any *.jar files or any other libraries
+    // Investigate ~/.gradle/caches/modules-2/files-2.1/org.junit/junit-bom/5.9.1/ to ensure
+    // When you have multiple dependency conflict resolve strategies like "configurations -> all -> resolutionStrategy -> force"
+    // and you need the platform to resolve all conflicts by itself overriding all previous strategies
+    // use enforcedPlatform() instead of regular platform()
+    add("testImplementation", enforcedPlatform('org.junit:junit-bom:5.9.1')) // same as previous but a syntax sugar
+    // To download related to platform library or *.jar file
+    // specify needed group: and name: omitting the version: value as it is already resolved in platform
+    testImplementation 'org.junit.jupiter:junit-jupiter' // same as previous but a syntax sugar
+
+    // After *$ gradle build* triggered investigate
+    // ~/.gradle/caches/modules-2/files-2.1/org.springframework/spring-webmvc/5.3.9/
+    // ~/.gradle/caches/modules-2/files-2.1/org.junit/junit-bom/5.9.1/
+    // ~/.gradle/caches/modules-2/files-2.1/org.junit.jupiter/junit-jupiter/5.9.1/
+    // directories content
+
+    // To investigate all available configurations and their dependencies observe
+    // https://docs.gradle.org/current/userguide/java_plugin.html#sec:java_plugin_and_dependency_management
+    // *implementation* - Implementation only dependencies.
+    // *compileOnly* - Compile time only dependencies, not used at runtime.
+    //      Example: servlet API - already available in ApacheTomcat so is not needed for runtime
+    // *compileClasspath* extends compileOnly, implementation.
+    //      Compile classpath, used when compiling source. Used by task compileJava.
+    //      Observe IDEA UI "gradle" bookmark's "Dependencies" -> "compileClasspath" tab.
+    //      Is used by *compile* java task
+    // *annotationProcessor* - Annotation processors used during compilation.
+    //      Example: lombock annotation processor
+    // *runtimeOnly* - Runtime only dependencies.
+    //      Example: DB drivers
+    // *runtimeClasspath* extends runtimeOnly, implementation.
+    //      Runtime classpath contains elements of the implementation, as well as runtime only elements.
+    //      Observe IDEA UI "gradle" bookmark's "Dependencies" -> "runtimeClasspath" tab.
+    // *testImplementation* extends implementation. Implementation only dependencies for tests.
+    // *testCompileOnly* - Additional dependencies only for compiling tests, not used at runtime.
+    // *testCompileClasspath* extends testCompileOnly, testImplementation.
+    //      Test compile classpath, used when compiling test sources. Used by task compileTestJava.
+    //      Observe IDEA UI "gradle" bookmark's "Dependencies" -> "testCompileClasspath" tab.
+    // *testRuntimeOnly* extends runtimeOnly. Runtime only dependencies for running tests.
+    // *testRuntimeClasspath* extends testRuntimeOnly, testImplementation.
+    //      Runtime classpath for running tests. Used by task test.
+    //      Observe IDEA UI "gradle" bookmark's "Dependencies" -> "testRuntimeClasspath" tab.
+
+    // So *compileJava*, *compileTestJava* and *test* tasks from *java* plugin depends on some of standard configurations
+    //  _____________   ________________   _____________
+    // | compileOnly | | implementation | | runtimeOnly |
+    //  ¯¯¯¯¯¯¯¯¯¯¯¯¯   ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯   ¯¯¯¯¯¯¯¯¯¯¯¯¯
+    //        |           |        |            |
+    //      __________________   __________________
+    //     | compileClasspath | | runtimeClasspath |
+    //      ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯   ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+    //              | uses
+    //        _____________
+    //       | compileJava | - implemented in a *java* gradle plugin
+    //        ¯¯¯¯¯¯¯¯¯¯¯¯¯
+    //
+    //                        ________________     _____________
+    //                       | implementation |   | runtimeOnly |
+    //                        ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯     ¯¯¯¯¯¯¯¯¯¯¯¯¯
+    //                               |                   |
+    //  _________________   ____________________   _________________
+    // | testCompileOnly | | testImplementation | | testRuntimeOnly |
+    //  ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯   ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯   ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+    //            |           |              |            |
+    //        ______________________     ______________________
+    //       | testCompileClasspath |   | testRuntimeClasspath |
+    //        ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯     ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+    //                | uses                       | uses
+    //        _________________                  ______
+    //       | compileTestJava |                | test | - implemented in a *java* gradle plugin
+    //        ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯                  ¯¯¯¯¯¯
+    //         |- implemented in a *java* gradle plugin
+
+    // TO USE CUSTOM CONFIGURATION
+    myConfig "org.projectlombok:lombok:1.18.24"
+    // refer to *configurations{}* section determined earlier
+
+    // TRANSITIVE DEPENDENCIES
+    //      are the dependencies which unambiguously determined dependencies depend on
+    //      Let's say user wants to include RestAssured
+    implementation("io.rest-assured:rest-assured:5.3.1") {
+        // the o.g.a.i.a.d.d.DefaultDependencyHandler.add(String configurationName, Object dependencyNotation, Closure closure) implementation
+
+        // so when you'll investigate IDEA *gradle* bookmark's
+        // testRuntimeClasspath -> io.rest-assured:rest-assured:5.3.1 tab
+        // you'll see other dependencies appended ambiguously with major rest-assured library like
+        // org.apache.groovy:groovy:4.0.11 -> org.apache.groovy:groovy-bom:4.0.11 -> org.apache.groovy:groovy-json:4.0.11
+        // and so on
+        // In addition when you'll investigate
+        // ~/.gradle/caches/modules-2/files-2.1/io.rest-assured/rest-assured/5.3.1/9fbe3a3b214560053208f9950c3951f19f563373/rest-assured-5.3.1.pom
+        // file you'll see it contains dependency to org.apache.groovy:groovy:4.0.11
+        // when you'll investigate
+        // ~/.gradle/caches/modules-2/files-2.1/org.apache.groovy/groovy/4.0.11/ecc87b64364dedd876c292c814a37ae0525d0fb1/groovy-4.0.11.pom
+        // file you'll see it contains dependency to org.apache.groovy:groovy-bom:4.0.11
+        // and so on
+        // THESE ALL ARE TRANSITIVE DEPENDENCIES
+        // AND CAN BE USED IN A SOURCE CODE AS WELL AS MAIN DEPENDENCY
+
+        exclude(group: "io.rest-assured", module: "xml-path") // will exclude specific library
+        // If you want to add the same library but of specific version just append related *implementation{}*
+        // or *testImplementation{}* configuration to *dependencies{}* area
+        // BUT keep in mind the closest to main dependency transitive dependency version will be included
+
+        transitive(false) // to exclude ALL transitive dependencies
+        // If you want to add the same library but of specific version just append related *implementation{}*
+        // or *testImplementation{}* configuration to *dependencies{}* area
+        // BUT keep in mind the closest to main dependency transitive dependency version will be included
+    }
+    implementation "org.springframework:spring-aop:5.3.8"
+    // As you can see in the *Gradle* bookmark of IDEA UI
+    // the org.springframework:spring-aop:5.3.9 (*) is forced to include
+    // as it is transitive dependency and org.springframework:spring-webmvc:5.3.9 depends on it
+
+    implementation("org.springframework:spring-beans:5.3.8") {
+        // force(true)
+        // will enforce the org.springframework:spring-beans:5.3.8 to include
+        // another way better to use to force specific versions is to use configurations -> all -> resolutionStrategy -> force syntax
+        // investigate *configurations{}* snippet
+    }
+
+    // ENTER "$ gradle dependencies" TO INVESTIGATE DEPENDENCIES GRAPH
 }
 
 test {
