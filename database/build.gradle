@@ -2,7 +2,8 @@
 // To observe all available (included) modules in the IDEA UI - investigate "Gradle" bookmark
 // To observe all available (included) modules as a relationship graph - type *$ gradle help projects*
 plugins {
-    id 'java'
+    id 'java-library' // Use 'java-library' instead of 'java' to support transitive module dependency
+    // The 'java-library' is aorg.gradle.api.plugins.JavaLibraryPlugin implementation
 }
 
 group = 'org.dev'
@@ -13,6 +14,8 @@ repositories {
 }
 
 dependencies {
+    api project(":common:core") // Append transitive module dependency
+
     testImplementation platform('org.junit:junit-bom:5.9.1')
     testImplementation 'org.junit.jupiter:junit-jupiter'
 }

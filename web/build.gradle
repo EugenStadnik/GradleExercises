@@ -22,6 +22,12 @@ repositories {
 }
 
 dependencies {
+	// To demo the "war" plugin advantages include "servlet"
+	compileOnly "jakarta.servlet:jakarta.servlet-api:5.0.0"
+	// do not forget to apply "war" plugin, implement simple "Servlet" class and run Tomcat:10
+	implementation project(":service") // Append module dependency
+	implementation project(":common:util") // Append :common:util module dependency just to check graph reinitialization
+	implementation "io.rest-assured:rest-assured:5.3.1"
 	implementation 'org.springframework.boot:spring-boot-starter-web'
 	providedRuntime 'org.springframework.boot:spring-boot-starter-tomcat'
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
@@ -30,3 +36,17 @@ dependencies {
 tasks.named('test') {
 	useJUnitPlatform()
 }
+
+// DEPLOY OUR WAR APPLICATION TO THE TOMCAT
+// install and run Tomcat first
+war {
+	archiveFileName = "gradleExercises.war"
+	// As war is renamed invoke http://127.0.0.1:8080/gradleExercises according to "gradleExercises.war" name
+	// Do not forget about http://127.0.0.1:8080/gradleExercises/users
+}
+task deployTomcat(type: Copy) {
+	from(war.archiveFile.get())
+	into("/home/ystadnik/Downloads/apache-tomcat-10.1.18/webapps/") // MANDATORY sign full path without shorting like ~
+}
+deployTomcat.dependsOn war
+assemble.dependsOn deployTomcat

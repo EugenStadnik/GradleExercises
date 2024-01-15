@@ -558,17 +558,3 @@ jar {
         "Class-Path": configurations.runtimeClasspath.files.collect{File file -> "lib/$file.name"}.join(" ")
     }
 }
-
-// DEPLOY OUR WAR APPLICATION TO THE TOMCAT
-// install and run Tomcat first
-war {
-    archiveFileName = "gradleExercises.war"
-    // As war is renamed invoke http://127.0.0.1:8080/gradleExercises according to "gradleExercises.war" name
-    // Do not forget about http://127.0.0.1:8080/gradleExercises/users
-}
-task deployTomcat(type: Copy) {
-    from(war.archiveFile.get())
-    into("/home/ystadnik/Downloads/apache-tomcat-10.1.18/webapps/") // MANDATORY sign full path without shorting like ~
-}
-deployTomcat.dependsOn war
-assemble.dependsOn deployTomcat

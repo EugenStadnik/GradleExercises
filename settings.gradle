@@ -20,8 +20,12 @@ include 'common:core'
 include 'common:util'
 //findProject(':common:util')?.name = 'util' // mostly it is redundant
 // To invoke tasks of 'common:util' module only type *$ gradle :common:util:taskName* for ex.: *$ gradle :common:util:jar*
+
 // To observe all available (included) modules in the IDEA UI - investigate "Gradle" bookmark
 // To observe all available (included) modules as a relationship graph - type *$ gradle help projects*
+// To build only the module - type *$ gradle :module:subModule:build*
+// To build only the module and all dependent modules - type *$ gradle :module:subModule:buildDependent*
+// To build only the module and all modules the module dependent on - type *$ gradle :module:subModule:buildNeeded*
 
 gradle.settingsEvaluated {
     // When second init phase (settings.gradle) is finished
