@@ -1,3 +1,5 @@
+import com.dev.task.ReleaseTask
+
 import java.time.LocalDate
 import org.apache.commons.lang3.StringUtils // define
 // buildscript { dependencies { classpath "org.apache.commons:commons-lang3:3.12.0" } }
@@ -636,4 +638,26 @@ jar {
         // to fix it define
         "Class-Path": configurations.runtimeClasspath.files.collect{File file -> "lib/$file.name"}.join(" ")
     }
+}
+
+ext {
+    release = false
+}
+
+// TASKS CACHES
+task makeRelease {
+    // The cache is calculated relying on inputs and outputs
+    // when the inputs and outputs doesn't change so the cache is also doesn't change
+    // and task rerun is not needed as the predicted task result won't change as well
+    inputs.property("release", project.release)
+    outputs.file("$rootDir/script.gradle")
+    doLast {
+        println "release in progress..."
+    }
+}
+// It is strongly recommended to shift complex logic outside the build.gradle script.
+// Please refer to $rootDir/buildSrc/src/main/groovy/com/dev/task/ReleaseTask
+task makeBuildSrcRelease(type: ReleaseTask) {
+    release = project.release
+    releaseFile = new File("$rootDir/script.gradle")
 }
