@@ -1,15 +1,76 @@
 import java.time.LocalDate
+import org.apache.commons.lang3.StringUtils // define
+// buildscript { dependencies { classpath "org.apache.commons:commons-lang3:3.12.0" } }
+// before to use this library
+
+// To configure properties of a *.gradle script will be applicable only during the gradle runtime
+buildscript {
+    repositories {
+        mavenCentral()
+    }
+    dependencies {
+        // the *implementation* configurationName is not available here cause the *buildscript{}* DSL is a config phase
+        classpath "org.apache.commons:commons-lang3:3.12.0" // Only after this particular library is applied you can
+        // do *import org.apache.commons.lang3.StringUtils* inside a *.gradle script and
+        // use the feature inside a *.gradle script. For ex.: investigate CAPITALIZED variable definition
+    }
+
+}
 
 // STANDARD PLUGINS
 // Also there are a lot of standard plugins like "java" available from the box. To apply it:
 // apply plugin: "java" // Deprecated way to apply standard plugins
-plugins {
+plugins { // Only after specific plugin is applied the gradle allows you to use most useful DSL entities
     id 'java'
     // To build project as *.war application apply the "war" plugin
     id 'war'
     // it will replace the "jar" task dependency in the "assemble" task
     // do not forget to include "jakarta.servlet" dependency, implement simple "Servlet" class and run Tomcat:10
+    id 'jacoco'
+    // The 'jacoco' plugin allows to analyze test coverage
+    // setup jacocoTestReport and jacocoTestCoverageVerification tasks dependencies for they to be dependentOn 'test' task
+    // and for they to finalizedBy 'test' task
+    // for more details refer to https://docs.gradle.org/current/userguide/jacoco_plugin.html#header
+    // Another one useful test and source code analyzer plugin is https://docs.gradle.org/current/userguide/checkstyle_plugin.html#header
+    id 'custom-plugin-id' // <--------------------------------------------------------------------------------------|
+} //                                                                                                                |
+// Uncomfortable though possible way to apply plugin                                                                |
+apply plugin: com.dev.plugin.CustomPlugin //                                                                        |
+// better to assign specific id in ./buildSrc/src/main/resources/META-INF/gradle-plugin/id-value.properties file ---|
+
+// To implement default behavior for current and all subprojects
+allprojects {
+    def CAPITALIZED = StringUtils.capitalize("value") // to do that first define
+    // buildscript { dependencies { classpath "org.apache.commons:commons-lang3:3.12.0" } } then
+    // import org.apache.commons.lang3.StringUtils in the beginning of *.gradle script
+    group = "com.dev"
+    description = "all projects description"
+    repositories {
+        mavenCentral()
+    }
+    // Strongly recommended to use for attributes and repositories determination only
 }
+// To implement default behavior for all subprojects of a current project only
+subprojects {
+    group = "com.dev"
+    description = "all sub-projects description"
+    repositories {
+        mavenCentral()
+    }
+    // Strongly recommended to use for attributes and repositories determination only
+}
+// WORST WAY TO CONFIGURE OTHER MODULES FORM THE CURRENT ONE
+project(":database") {
+    group = "com.dev"
+    description = ":database module description"
+    repositories {
+        mavenCentral()
+    }
+    // NEVER EVER DO THAT ... NEVER ... EVER
+}
+
+// Just to check *allprojects{}* and *subprojects{}* DSL behavior
+println "The \"description\" variable value for ${project.name} project is: \"${description}\""
 
 // To set java version for source and compiled classes
 java {
@@ -102,6 +163,7 @@ dependencies { // the org.gradle.api.internal.project.DefaultProject.dependencie
     // The platform() is just a *.pom file where all dependencies and their conflicts already resolved successfully
     // The platform() as itself doesn't download any *.jar files or any other libraries
     // Investigate ~/.gradle/caches/modules-2/files-2.1/org.junit/junit-bom/5.9.1/ to ensure
+
     // When you have multiple dependency conflict resolve strategies like "configurations -> all -> resolutionStrategy -> force"
     // and you need the platform to resolve all conflicts by itself overriding all previous strategies
     // use enforcedPlatform() instead of regular platform()
@@ -225,8 +287,22 @@ dependencies { // the org.gradle.api.internal.project.DefaultProject.dependencie
 }
 
 test {
-    useJUnitPlatform()
+    // To run tests in parallel
+    maxParallelForks 2
+
+    // useTestNG() // To run TestNG tests. Apply TestNG dependencies and configure you tests as TestNG first
+    useJUnitPlatform() // To run JUnit 5 tests. Apply JUnit dependencies and configure you tests as JUnit first
+    // If no test platform determined the JUnit 4 will be applied by default
+    // For more info refer to https://docs.gradle.org/current/dsl/org.gradle.api.tasks.testing.Test.html
+
+    // To run only a specific project (module) tests type *$ gradle :module:subModule:test*
+    // For ex.: gradle :service:test
 }
+// Before to setup 'jacoco' tasks dependencies import 'jacoco' plugin first
+test.finalizedBy jacocoTestReport
+jacocoTestReport.dependsOn test
+// for more details refer to https://docs.gradle.org/current/userguide/jacoco_plugin.html#header
+// Another one useful test and source code analyzer plugin is https://docs.gradle.org/current/userguide/checkstyle_plugin.html#header
 
 println "config phase"
 println "gradle hash: ${gradle.hashCode()}"
@@ -246,7 +322,7 @@ hello.group = "dev"
 hello {
     println "conf phase. Task hello"
     description = "Hello task"
-    group = "dev"
+    group = "hello"
 }
 
 // However more more more more comfortable way is
@@ -425,7 +501,7 @@ defaultTasks "first", "one"
 // PROPERTIES INTERACTION
 // to set properties inside gradle script use *ext*
 ext {
-    javaVersion = "11"
+    javaVersion = "17"
     currentDate = LocalDate.now()
 }
 // to invoke properties use
@@ -445,6 +521,7 @@ println "---- Project \"proj.param\" property:"
 println project.getProperties().get("proj.param") // Do not forget to specify -Pproj.param=projValue as CMD argument during *$ gradle* invocation
 
 // CUSTOM PLUGINS
+// NOT THE BEST WAY TO CREATE PLUGINS. Better create groovy class in the buildSrc folder
 // 1. Script Plugin: create ///MyProject/name.gradle file and describe there part of a gradle script
 // then apply the part in the main build.gradle specifying path to the name.gradle file
 apply from: "./name.gradle"
@@ -456,7 +533,7 @@ class CustomPlugin implements Plugin<Project> {
     }
 
     void classPluginTask(Project target) {
-        def map = [description: "classPluginTask task", group: "dev", type: DefaultTask]
+        def map = [description: "classPluginTask task", group: "customPlugins", type: DefaultTask]
         target.task(map, "classPluginTask") {
             // When you'll not specify the type - it's ok. yor currently created task will be extended from DefaultTask.class by default
             // However you can extend your task from any of org.gradle.api.Task subclasses
@@ -514,6 +591,8 @@ println "\"hello\" task group: \"${hello.group}\""
 // FAT JAR - less prioritized way
 // where all dependencies will be appended as unzipped or un-jar-ed *.class files to our *.jar application
 task fatJar(type: Jar) {
+    description = "Build jar including all dependent unarchived *.class files"
+    group = "build"
     // the *jar{}* is just a org.gradle.api.tasks.bundling.Jar.jar(Closure closure) method implementation as TASK available in a *java* plugin
     // When *$ gradle assemble* or *$ gradle jar* task is invoked with default or empty *jar{}* task implementation
     // the jar/META_INF/MANIFEST.MF file will not contains the main class reference and *$ java -jar myApp.jar* invocation

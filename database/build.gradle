@@ -6,6 +6,9 @@ plugins {
     // The 'java-library' is aorg.gradle.api.plugins.JavaLibraryPlugin implementation
 }
 
+// Just to check *allprojects{}* and *subprojects{}* DSL behavior
+println "The \"description\" variable value for ${project.name} project is: \"${description}\""
+
 group = 'org.dev'
 version = '1.0.1'
 
@@ -15,6 +18,7 @@ repositories {
 
 dependencies {
     api project(":common:core") // Append transitive module dependency
+    // apply 'java-library' plugin first
 
     testImplementation platform('org.junit:junit-bom:5.9.1')
     testImplementation 'org.junit.jupiter:junit-jupiter'

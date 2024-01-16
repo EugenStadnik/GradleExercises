@@ -1,4 +1,5 @@
-task scriptPluginTask(description: "scriptPluginTask task", group: "dev", type: DefaultTask) {
+// NOT THE BEST WAY TO CREATE PLUGINS. Better create groovy class in the buildSrc folder
+task scriptPluginTask(description: "scriptPluginTask task", group: "customPlugins", type: DefaultTask) {
 // When you'll not specify the type - it's ok. yor currently created task will be extended from DefaultTask.class by default
 // However you can extend your task from any of org.gradle.api.Task subclasses
     println "conf phase. Task scriptPluginTask" // Will be triggered on config phase only

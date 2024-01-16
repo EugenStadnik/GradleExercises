@@ -5,6 +5,9 @@ plugins {
     id 'java'
 }
 
+// Just to check *allprojects{}* and *subprojects{}* DSL behavior
+println "The \"description\" variable value for ${project.name} project is: \"${description}\""
+
 group = 'com.dev'
 version = '1.0.5'
 

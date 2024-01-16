@@ -1,0 +1,4 @@
+// PROBABLY THE BEST WAY TO CREATE PLUGINS.
+plugins {
+    id 'groovy'
+}

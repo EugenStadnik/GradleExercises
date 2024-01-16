@@ -1,5 +1,25 @@
 // The 'common' is just a container project to include other projects
 // To observe all available (included) modules in the IDEA UI - investigate "Gradle" bookmark
 // To observe all available (included) modules as a relationship graph - type *$ gradle help projects*
+// To implement default behavior for current and all subprojects
+allprojects {
+    group = "com.dev"
+    description = "all common projects description"
+    repositories {
+        mavenCentral()
+    }
+    // Strongly recommended to use for attributes and repositories determination only
+}
+// To implement default behavior for all subprojects of a current project only
+subprojects {
+    group = "com.dev"
+    description = "all common sub-projects description"
+    repositories {
+        mavenCentral()
+    }
+    // Strongly recommended to use for attributes and repositories determination only
+}
 
+// Just to check *allprojects{}* and *subprojects{}* DSL behavior
+println "The \"description\" variable value for ${project.name} project is: \"${description}\""
 version = '1.0.4'
