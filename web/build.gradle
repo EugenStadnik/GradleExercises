@@ -1,6 +1,6 @@
-// To invoke tasks of 'web' module only type *$ gradle :web:taskName* for ex.: *$ gradle :web:war*
+// To invoke tasks of 'web' module only type *$ gradlew :web:taskName* for ex.: *$ gradlew :web:war*
 // To observe all available (included) modules in the IDEA UI - investigate "Gradle" bookmark
-// To observe all available (included) modules as a relationship graph - type *$ gradle help projects*
+// To observe all available (included) modules as a relationship graph - type *$ gradlew help projects*
 
 // It is strongly recommended to init web modules with Spring-Initializer
 plugins { //              |

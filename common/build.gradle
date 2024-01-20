@@ -1,6 +1,6 @@
 // The 'common' is just a container project to include other projects
 // To observe all available (included) modules in the IDEA UI - investigate "Gradle" bookmark
-// To observe all available (included) modules as a relationship graph - type *$ gradle help projects*
+// To observe all available (included) modules as a relationship graph - type *$ gradlew help projects*
 // To implement default behavior for current and all subprojects
 allprojects {
     group = "com.dev"

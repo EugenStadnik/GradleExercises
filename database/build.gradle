@@ -1,6 +1,6 @@
-// To invoke tasks of 'database' module only type *$ gradle :database:taskName* for ex.: *$ gradle :database:assemble*
+// To invoke tasks of 'database' module only type *$ gradlew :database:taskName* for ex.: *$ gradlew :database:assemble*
 // To observe all available (included) modules in the IDEA UI - investigate "Gradle" bookmark
-// To observe all available (included) modules as a relationship graph - type *$ gradle help projects*
+// To observe all available (included) modules as a relationship graph - type *$ gradlew help projects*
 plugins {
     id 'java-library' // Use 'java-library' instead of 'java' to support transitive module dependency
     // The 'java-library' is aorg.gradle.api.plugins.JavaLibraryPlugin implementation

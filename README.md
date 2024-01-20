@@ -47,26 +47,26 @@ The ***1*** and ***2*** are init phases. The ***3*** is a config phase. The ***4
 ---
 - place ///MyProject/usr/share/gradle/init.d/* files to /usr/share/gradle/init.d/ folder
 - Observe and investigate files
-- Run *$ gradle* for current project and analyze results
+- Run *$ gradlew* for current project and analyze results
 
 *2. *org.gradle.api.initialization.Settings* object*
 ---
 - Observe and investigate ///MyProject/settings.gradle file
-- Run *$ gradle* for current project and analyze results
+- Run *$ gradlew* for current project and analyze results
 
 *3. *org.gradle.api.Project* object*
 ---
 - Observe and investigate ///MyProject/build.gradle *println* code snippets
-- Run *$ gradle* for current project and analyze results
+- Run *$ gradlew* for current project and analyze results
 
 *4. *org.gradle.api.Task* object*
 ---
 - The *org.gradle.api.Task* interface implementation contains multiple initializers for variate use cases.
 - The common *org.gradle.api.Task* interface implementation initializer is *public Task task(String name) {}* such can be invoked as *task("hello")* in a *build.gradle* script
 - Observe and investigate ///MyProject/build.gradle "hello" task implementations
-- Run *$ gradle* for current project and analyze results
-- Run *$ gradle hello* for current project, analyze results and compare difference with the previous invocation results
-- Run *$ gradle hello7* for current project, analyze results and compare difference with the previous invocation results
+- Run *$ gradlew* for current project and analyze results
+- Run *$ gradlew hello* for current project, analyze results and compare difference with the previous invocation results
+- Run *$ gradlew hello7* for current project, analyze results and compare difference with the previous invocation results
 
 **org.gradle.api.Action* object*
 ---
@@ -80,9 +80,9 @@ OR
 
 To show all tasks available:
 ---
-Type ***$ gradle tasks*** in CMD of root project folder.
+Type ***$ gradlew tasks*** in CMD of root project folder.
 
-Also let's imagine the ***gradle.taskGraph.whenReady*** callback is implemented and shows all tasks order and dependency chain and user triggers ***$ gradle build*** command on an empty project. The following tasks chain will be retrieved:
+Also let's imagine the ***gradle.taskGraph.whenReady*** callback is implemented and shows all tasks order and dependency chain and user triggers ***$ gradlew build*** command on an empty project. The following tasks chain will be retrieved:
 
 ---- Graph:<br />
 compileJava<br />
@@ -106,3 +106,25 @@ https://docs.gradle.org/current/userguide/img/javaPluginTasks.png
 The ***java*** plugin docs page:
 ---
 https://docs.gradle.org/current/userguide/java_plugin.html#header
+
+Gradle wrapper
+---
+When a project is pooled or cloned better use $ProjDir/gradlew instead of /usr/share/bin/gradle</br>
+The gradle wrapper is always of the same for all teammates rather than /usr/share/bin/gradle</br>
+Use /usr/share/bin/gradle only to initialize new project</br>
+IDEA always use gradlew by default. To change such a behavior enter File -> Settings -> Build, Execution, Deployment -> Build Tools -> Gradle -> Use Gradle from (better don't change).</br>
+When $ProjDir/gradle/wrapper/* files or directories occasionally deleted use IDEA's Gradle bookmark ProjName -> Tasks -> build setup -> wrapper task to recreate wrapper again.</br>
+Use $ProjDir/gradle/wrapper/gradle-wrapper.properties file to check current gradle version and tune other settings. Or create a separate task in a build.gradle file and configure version like
+```gradle
+wrapper {
+    gradleVersion "8.4"
+}
+```
+
+Kotlin
+---
+When your project is of *Android* application type probably it is better for you to use Kotlin DSL for gradle scripts. Though there are less syntax sugar tricks.
+
+Migrate from *maven*
+---
+Use https://docs.gradle.org/current/userguide/migrating_from_maven.html article as reference.

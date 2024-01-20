@@ -7,25 +7,25 @@ println "settings dir: ${settings.settingsDir}"
 println "root project hash: ${rootProject.hashCode()}"
 
 include 'database' // To include the 'database' module
-// To invoke tasks of 'database' module only type *$ gradle :database:taskName* for ex.: *$ gradle :database:assemble*
+// To invoke tasks of 'database' module only type *$ gradlew :database:taskName* for ex.: *$ gradlew :database:assemble*
 include 'service' // To include the 'service' module
-// To invoke tasks of 'service' module only type *$ gradle :service:taskName* for ex.: *$ gradle :service:build*
+// To invoke tasks of 'service' module only type *$ gradlew :service:taskName* for ex.: *$ gradlew :service:build*
 include 'web' // To include the 'web' module
-// To invoke tasks of 'web' module only type *$ gradle :web:taskName* for ex.: *$ gradle :web:war*
+// To invoke tasks of 'web' module only type *$ gradlew :web:taskName* for ex.: *$ gradlew :web:war*
 include 'common' // To include the 'common' module
 // The 'common' is just a container project to include other projects
 include 'common:core'
 //findProject(':common:core')?.name = 'core' // mostly it is redundant
-// To invoke tasks of 'common:core' module only type *$ gradle :common:core:taskName* for ex.: *$ gradle :common:core:jar*
+// To invoke tasks of 'common:core' module only type *$ gradlew :common:core:taskName* for ex.: *$ gradlew :common:core:jar*
 include 'common:util'
 //findProject(':common:util')?.name = 'util' // mostly it is redundant
-// To invoke tasks of 'common:util' module only type *$ gradle :common:util:taskName* for ex.: *$ gradle :common:util:jar*
+// To invoke tasks of 'common:util' module only type *$ gradlew :common:util:taskName* for ex.: *$ gradlew :common:util:jar*
 
 // To observe all available (included) modules in the IDEA UI - investigate "Gradle" bookmark
-// To observe all available (included) modules as a relationship graph - type *$ gradle help projects*
-// To build only the module - type *$ gradle :module:subModule:build*
-// To build only the module and all dependent modules - type *$ gradle :module:subModule:buildDependent*
-// To build only the module and all modules the module dependent on - type *$ gradle :module:subModule:buildNeeded*
+// To observe all available (included) modules as a relationship graph - type *$ gradlew help projects*
+// To build only the module - type *$ gradlew :module:subModule:build*
+// To build only the module and all dependent modules - type *$ gradlew :module:subModule:buildDependent*
+// To build only the module and all modules the module dependent on - type *$ gradlew :module:subModule:buildNeeded*
 
 gradle.settingsEvaluated {
     // When second init phase (settings.gradle) is finished

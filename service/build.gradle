@@ -1,6 +1,6 @@
-// To invoke tasks of 'service' module only type *$ gradle :service:taskName* for ex.: *$ gradle :service:build*
+// To invoke tasks of 'service' module only type *$ gradlew :service:taskName* for ex.: *$ gradlew :service:build*
 // To observe all available (included) modules in the IDEA UI - investigate "Gradle" bookmark
-// To observe all available (included) modules as a relationship graph - type *$ gradle help projects*
+// To observe all available (included) modules as a relationship graph - type *$ gradlew help projects*
 plugins {
     id 'java-library' // Use 'java-library' instead of 'java' to support transitive module dependency
     // The 'java-library' is aorg.gradle.api.plugins.JavaLibraryPlugin implementation
@@ -36,7 +36,7 @@ test {
     // If no test platform determined the JUnit 4 will be applied by default
     // For more info refer to https://docs.gradle.org/current/dsl/org.gradle.api.tasks.testing.Test.html
 
-    // To run only a specific project (module) tests type *$ gradle :module:subModule:test*
+    // To run only a specific project (module) tests type *$ gradlew :module:subModule:test*
     // For ex.: gradle :service:test
 }
 // Before to setup 'jacoco' tasks dependencies import 'jacoco' plugin first

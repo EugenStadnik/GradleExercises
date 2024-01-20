@@ -117,7 +117,7 @@ repositories { // the implementation of org.gradle.api.artifacts.dsl.RepositoryH
     }
 
     // to search for dependencies already cached in ~/.gradle/caches and do not search for dependencies over the internet
-    // just use *--offline* VM option with the *$ gradle* invocation. For ex.: *$ gradle --offline build*
+    // just use *--offline* VM option with the *$ gradlew* invocation. For ex.: *$ gradlew --offline build*
     // WARNING when no dependency cached in the offline mode the build will fail
     // Whe IDEA "gradle" UI bookmark is used tap "-//-" - "Toggle Offline Mode" button to use gradle in the offline mode
 }
@@ -176,7 +176,7 @@ dependencies { // the org.gradle.api.internal.project.DefaultProject.dependencie
     // When no supported version found either from manual determination or from the platform *.pom file
     // the application won't build but fail with gradle errors
 
-    // After *$ gradle build* triggered investigate
+    // After *$ gradlew build* triggered investigate
     // ~/.gradle/caches/modules-2/files-2.1/org.springframework/spring-webmvc/5.3.9/
     // ~/.gradle/caches/modules-2/files-2.1/org.junit/junit-bom/5.9.1/
     // ~/.gradle/caches/modules-2/files-2.1/org.junit.jupiter/junit-jupiter/5.9.1/
@@ -285,7 +285,7 @@ dependencies { // the org.gradle.api.internal.project.DefaultProject.dependencie
         // investigate *configurations{}* snippet
     }
 
-    // ENTER "$ gradle dependencies" TO INVESTIGATE DEPENDENCIES GRAPH
+    // ENTER "$ gradlew dependencies" TO INVESTIGATE DEPENDENCIES GRAPH
 }
 
 test {
@@ -297,7 +297,7 @@ test {
     // If no test platform determined the JUnit 4 will be applied by default
     // For more info refer to https://docs.gradle.org/current/dsl/org.gradle.api.tasks.testing.Test.html
 
-    // To run only a specific project (module) tests type *$ gradle :module:subModule:test*
+    // To run only a specific project (module) tests type *$ gradlew :module:subModule:test*
     // For ex.: gradle :service:test
 }
 // Before to setup 'jacoco' tasks dependencies import 'jacoco' plugin first
@@ -496,7 +496,7 @@ gradle.taskGraph.afterTask { Task task -> // Will be triggered after each task i
         println "${task} afterTask callback"
     }
 }
-// When no other task is triggered during *$ gradle* invocation the *help* task will be triggered by default
+// When no other task is triggered during *$ gradlew* invocation the *help* task will be triggered by default
 // To override such a behavior append all tasks should be triggered by default at the list of default tasks
 defaultTasks "first", "one"
 
@@ -518,9 +518,9 @@ println javaVersion
 println "---- All project properties:"
 println project.properties
 println "---- System \"sys.example\" property:"
-println System.getProperty("sys.example") // Do not forget to specify -Dsys.example=sysValue as CMD argument during *$ gradle* invocation
+println System.getProperty("sys.example") // Do not forget to specify -Dsys.example=sysValue as CMD argument during *$ gradlew* invocation
 println "---- Project \"proj.param\" property:"
-println project.getProperties().get("proj.param") // Do not forget to specify -Pproj.param=projValue as CMD argument during *$ gradle* invocation
+println project.getProperties().get("proj.param") // Do not forget to specify -Pproj.param=projValue as CMD argument during *$ gradlew* invocation
 
 // CUSTOM PLUGINS
 // NOT THE BEST WAY TO CREATE PLUGINS. Better create groovy class in the buildSrc folder
@@ -596,14 +596,14 @@ task fatJar(type: Jar) {
     description = "Build jar including all dependent unarchived *.class files"
     group = "build"
     // the *jar{}* is just a org.gradle.api.tasks.bundling.Jar.jar(Closure closure) method implementation as TASK available in a *java* plugin
-    // When *$ gradle assemble* or *$ gradle jar* task is invoked with default or empty *jar{}* task implementation
+    // When *$ gradlew assemble* or *$ gradlew jar* task is invoked with default or empty *jar{}* task implementation
     // the jar/META_INF/MANIFEST.MF file will not contains the main class reference and *$ java -jar myApp.jar* invocation
     // will fail with "no main manifest attribute" error.
     // To fix it either append "Main-Class: com.dev.HelloWorld" or better to determine
     manifest {
         attributes "Main-Class": "com.dev.HelloWorld"
     }
-    // Regardless *manifest {}* is determined the *$ gradle assemble* or *$ gradle jar*
+    // Regardless *manifest {}* is determined the *$ gradlew assemble* or *$ gradlew jar*
     // task invocation still will fail with *java.lang.NoClassDefFoundError*
     // as no related dependency classes appended to our *.jar
     // to fix it define
@@ -626,13 +626,13 @@ task copyAllDependencies(type: Copy) {
 jar.dependsOn(copyAllDependencies)
 jar {
     // the *jar{}* is just a org.gradle.api.tasks.bundling.Jar.jar(Closure closure) method implementation as TASK available in a *java* plugin
-    // When *$ gradle assemble* or *$ gradle jar* task is invoked with default or empty *jar{}* task implementation
+    // When *$ gradlew assemble* or *$ gradlew jar* task is invoked with default or empty *jar{}* task implementation
     // the jar/META_INF/MANIFEST.MF file will not contains the main class reference and *$ java -jar myApp.jar* invocation
     // will fail with "no main manifest attribute" error.
     // To fix it either append "Main-Class: com.dev.HelloWorld" or better to determine
     manifest {
         attributes "Main-Class": "com.dev.HelloWorld",
-        // Regardless *manifest {}* is determined the *$ gradle assemble* or *$ gradle jar*
+        // Regardless *manifest {}* is determined the *$ gradlew assemble* or *$ gradlew jar*
         // task invocation still will fail with *java.lang.NoClassDefFoundError*
         // as no related dependency libraries appended to our *.jar application
         // to fix it define
@@ -660,4 +660,9 @@ task makeRelease {
 task makeBuildSrcRelease(type: ReleaseTask) {
     release = project.release
     releaseFile = new File("$rootDir/script.gradle")
+}
+// Use $ProjDir/gradle/wrapper/gradle-wrapper.properties file to check current gradle version and tune other settings.
+// Or create a separate task in a build.gradle file and configure version like
+wrapper {
+    gradleVersion "8.4" // is just a field in an org.gradle.api.tasks.wrapper.Wrapper class
 }

@@ -1,6 +1,6 @@
-// To invoke tasks of 'common:util' module only type *$ gradle :common:util:taskName* for ex.: *$ gradle :common:util:jar*
+// To invoke tasks of 'common:util' module only type *$ gradlew :common:util:taskName* for ex.: *$ gradlew :common:util:jar*
 // To observe all available (included) modules in the IDEA UI - investigate "Gradle" bookmark
-// To observe all available (included) modules as a relationship graph - type *$ gradle help projects*
+// To observe all available (included) modules as a relationship graph - type *$ gradlew help projects*
 plugins {
     id 'java'
 }
